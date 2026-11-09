@@ -1,0 +1,564 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dama das Funções</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:white;min-height:100vh}
+.container{width:min(1100px,96%);margin:auto;padding:24px 0}
+.tela{min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:white;color:#111827;border-radius:20px;padding:30px;box-shadow:0 20px 60px #0006}
+.inicio{width:min(620px,100%);text-align:center}
+h1{margin-top:0;color:#1e3a8a}
+h2{color:#1e3a8a}
+input{width:100%;padding:13px;margin:7px 0 15px;border:2px solid #d1d5db;border-radius:10px;font-size:1rem}
+button{border:0;border-radius:10px;padding:12px 18px;font-size:1rem;font-weight:bold;cursor:pointer}
+.btn-principal{background:#2563eb;color:white;width:100%}
+.btn-principal:hover{background:#1d4ed8}
+.oculto{display:none!important}
+#jogo{padding:20px}
+.topo-jogo{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:18px}
+.jogadores{display:flex;gap:12px;flex-wrap:wrap}
+.jogador{padding:10px 15px;border-radius:12px;background:white;color:#111827;min-width:170px;box-shadow:0 5px 20px #0003}
+.jogador.ativo{outline:4px solid #facc15}
+.area-tabuleiro{display:flex;justify-content:center}
+#tabuleiro{display:block;width:min(88vw,720px);height:auto;border-radius:10px;box-shadow:0 15px 40px #0006;touch-action:manipulation}
+.instrucoes{text-align:center;margin:15px auto;max-width:720px;background:#ffffff20;padding:12px;border-radius:10px}
+#modalDesafio{position:fixed;inset:0;width:100%;height:100%;background:#000c;display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000}
+.caixa-desafio{width:100%;max-width:650px;max-height:90vh;overflow-y:auto;margin:auto;background:white;color:#111827;border-radius:20px;padding:30px;text-align:center;box-shadow:0 20px 70px #0009}
+.tema{display:inline-block;padding:7px 12px;border-radius:20px;background:#dbeafe;color:#1e40af;font-weight:bold}
+#cronometro{font-size:2rem;font-weight:bold;margin:12px}
+#pergunta{font-size:1.25rem;font-weight:bold;margin:20px 0 10px}
+#formula{font-size:1.8rem;font-weight:bold;margin:15px 0}
+.opcoes{width:100%;max-width:520px;margin:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.opcao{width:100%;min-height:55px;padding:14px 18px;border:2px solid #d1d5db;background:#f9fafb;color:#111827;border-radius:10px;font-size:1.1rem;font-weight:bold;display:flex;align-items:center;justify-content:center;text-align:center}
+.opcao:hover{background:#e5e7eb;border-color:#2563eb}
+#mensagem{min-height:28px;font-weight:bold;margin-top:15px}
+#resultado{padding:30px 0}
+.resultado-card{max-width:1050px;margin:auto}
+.resumo-jogadores{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.resumo{border:2px solid #e5e7eb;border-radius:16px;padding:20px}
+.metricas{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.metrica{background:#f3f4f6;border-radius:10px;padding:12px;text-align:center}
+.metrica strong{display:block;font-size:1.4rem}
+.tabela-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin-top:15px;min-width:700px}
+th,td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:center}
+th{background:#eff6ff;color:#1e3a8a}
+.graficos{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:20px}
+.grafico{border:2px solid #e5e7eb;border-radius:16px;padding:20px}
+.barra-linha{margin:15px 0}
+.barra-label{display:flex;justify-content:space-between;font-weight:bold}
+.barra-bg{height:22px;background:#e5e7eb;border-radius:20px;overflow:hidden}
+.barra{height:100%;border-radius:20px;transition:width .8s}
+.correcta{background:#16a34a}
+.errada{background:#dc2626}
+.acoes{display:flex;gap:12px;justify-content:center;margin-top:25px;flex-wrap:wrap}
+.btn-sec{background:#334155;color:white}
+.vencedor{text-align:center;background:#dcfce7;color:#166534;padding:15px;border-radius:12px;font-size:1.3rem;font-weight:bold}
+@media(max-width:700px){
+ .resumo-jogadores,.graficos{grid-template-columns:1fr}
+ .metricas{grid-template-columns:repeat(2,1fr)}
+ .opcoes{grid-template-columns:1fr}
+ .caixa-desafio{padding:20px}
+ #formula{font-size:1.5rem}
+}
+</style>
+</head>
+<body>
+
+<section id="inicio" class="tela">
+<div class="card inicio">
+<h1>♟️ Dama das Funções</h1>
+<p>Um jogo de damas com desafios de Matemática.</p>
+<label><strong>Jogador das peças brancas</strong></label>
+<input id="nomeBranco" placeholder="Nome do jogador 1">
+<label><strong>Jogador das peças pretas</strong></label>
+<input id="nomePreto" placeholder="Nome do jogador 2">
+<button class="btn-principal" onclick="iniciarJogo()">Começar partida</button>
+</div>
+</section>
+
+<section id="jogo" class="oculto">
+<div class="container">
+<div class="topo-jogo">
+<div class="jogadores">
+<div id="painelBranco" class="jogador">⚪ <strong id="nomeBrancoJogo"></strong><br><span id="statusBranco">Sua vez</span></div>
+<div id="painelPreto" class="jogador">⚫ <strong id="nomePretoJogo"></strong><br><span id="statusPreto">Aguardando</span></div>
+</div>
+<button class="btn-sec" onclick="voltarInicio()">Novo jogo</button>
+</div>
+<div class="area-tabuleiro"><canvas id="tabuleiro" width="720" height="720"></canvas></div>
+<div class="instrucoes"><strong>Regras:</strong> as capturas são obrigatórias. Ao tentar capturar, responda ao desafio matemático. Se acertar, a captura acontece. Se errar ou acabar o tempo, a captura é cancelada e a vez passa.</div>
+</div>
+</section>
+
+<div id="modalDesafio" class="oculto">
+<div class="caixa-desafio">
+<div id="temaQuestao" class="tema"></div>
+<div id="cronometro">5s</div>
+<div id="pergunta"></div>
+<div id="formula"></div>
+<div id="opcoes" class="opcoes"></div>
+<div id="mensagem"></div>
+</div>
+</div>
+
+<section id="resultado" class="oculto">
+<div class="container">
+<div class="card resultado-card">
+<h1>🏆 Resultado da partida</h1>
+<div id="vencedor" class="vencedor"></div>
+<h2>Desempenho individual</h2>
+<div id="resumos" class="resumo-jogadores"></div>
+<h2>Desempenho por tema</h2>
+<div class="tabela-wrap"><table id="tabelaResultado"></table></div>
+<div id="graficos" class="graficos"></div>
+<div class="acoes"><button class="btn-principal" onclick="voltarInicio()">Jogar novamente</button></div>
+</div>
+</div>
+</section>
+
+<script>
+const canvas=document.getElementById("tabuleiro");
+const ctx=canvas.getContext("2d");
+const TAM=8,TAM_CASA=canvas.width/TAM;
+let tabuleiro=[],jogadorAtual="branco",selecionada=null;
+let movimentosSelecionados=[],capturaPendente=null;
+let perguntaAtual=null,intervalo=null,tempoRestante=5;
+let jogoAtivo=false,respondendo=false;
+let nomes={branco:"Jogador 1",preto:"Jogador 2"};
+
+const TEMAS={
+ angular:"Coeficiente angular",
+ linear:"Coeficiente linear",
+ exponencial:"Função / equação exponencial",
+ media:"Média aritmética",
+ mediana:"Mediana"
+};
+
+function criarEstatisticas(){
+ return {total:0,corretas:0,erradas:0,temas:{
+ angular:{corretas:0,erradas:0},
+ linear:{corretas:0,erradas:0},
+ exponencial:{corretas:0,erradas:0},
+ media:{corretas:0,erradas:0},
+ mediana:{corretas:0,erradas:0}
+ }};
+}
+let estatisticas={branco:criarEstatisticas(),preto:criarEstatisticas()};
+
+function iniciarJogo(){
+ const b=document.getElementById("nomeBranco").value.trim();
+ const p=document.getElementById("nomePreto").value.trim();
+ if(!b||!p){alert("Digite o nome dos dois jogadores.");return;}
+ nomes={branco:b,preto:p};
+ estatisticas={branco:criarEstatisticas(),preto:criarEstatisticas()};
+ document.getElementById("inicio").classList.add("oculto");
+ document.getElementById("resultado").classList.add("oculto");
+ document.getElementById("jogo").classList.remove("oculto");
+ document.getElementById("nomeBrancoJogo").textContent=b;
+ document.getElementById("nomePretoJogo").textContent=p;
+ criarTabuleiro();
+ jogadorAtual="branco";selecionada=null;capturaPendente=null;
+ movimentosSelecionados=[];jogoAtivo=true;
+ atualizarTurno();desenharTabuleiro();
+}
+
+function criarTabuleiro(){
+ tabuleiro=Array.from({length:TAM},()=>Array(TAM).fill(null));
+ for(let l=0;l<TAM;l++)for(let c=0;c<TAM;c++){
+  if((l+c)%2===1){
+   if(l<3)tabuleiro[l][c]={cor:"preto",dama:false};
+   else if(l>4)tabuleiro[l][c]={cor:"branco",dama:false};
+  }
+ }
+}
+
+function desenharTabuleiro(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ for(let l=0;l<TAM;l++)for(let c=0;c<TAM;c++){
+  const x=c*TAM_CASA,y=l*TAM_CASA;
+  ctx.fillStyle=(l+c)%2===0?"#f1d9a7":"#8b5a2b";
+  ctx.fillRect(x,y,TAM_CASA,TAM_CASA);
+  if(selecionada&&selecionada.l===l&&selecionada.c===c){
+   ctx.fillStyle="rgba(250,204,21,.65)";
+   ctx.fillRect(x+4,y+4,TAM_CASA-8,TAM_CASA-8);
+  }
+  const mov=movimentosSelecionados.find(m=>m.l===l&&m.c===c);
+  if(mov){
+   ctx.beginPath();ctx.arc(x+TAM_CASA/2,y+TAM_CASA/2,12,0,Math.PI*2);
+   ctx.fillStyle=mov.captura?"#dc2626":"#16a34a";ctx.fill();
+  }
+  const p=tabuleiro[l][c];
+  if(p)desenharPeca(p,x+TAM_CASA/2,y+TAM_CASA/2);
+ }
+}
+
+function desenharPeca(p,x,y){
+ ctx.beginPath();ctx.arc(x,y,TAM_CASA*.34,0,Math.PI*2);
+ ctx.fillStyle=p.cor==="branco"?"#f8fafc":"#111827";ctx.fill();
+ ctx.lineWidth=5;ctx.strokeStyle=p.cor==="branco"?"#111827":"#f8fafc";ctx.stroke();
+ if(p.dama){
+  ctx.fillStyle=p.cor==="branco"?"#111827":"#f8fafc";
+  ctx.font="bold 38px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText("D",x,y+1);
+  ctx.beginPath();ctx.arc(x,y,TAM_CASA*.25,0,Math.PI*2);
+  ctx.lineWidth=2;ctx.strokeStyle=p.cor==="branco"?"#111827":"#f8fafc";ctx.stroke();
+ }
+}
+
+canvas.addEventListener("click",e=>{
+ if(!jogoAtivo||capturaPendente)return;
+ const r=canvas.getBoundingClientRect();
+ const c=Math.floor((e.clientX-r.left)/r.width*TAM);
+ const l=Math.floor((e.clientY-r.top)/r.height*TAM);
+ clicarCasa(l,c);
+});
+
+function clicarCasa(l,c){
+ if(l<0||l>=TAM||c<0||c>=TAM)return;
+ const p=tabuleiro[l][c];
+ if(selecionada){
+  const mov=movimentosSelecionados.find(m=>m.l===l&&m.c===c);
+  if(mov){executarMovimento(selecionada.l,selecionada.c,l,c,mov);return;}
+ }
+ if(p&&p.cor===jogadorAtual){
+  const movs=obterMovimentos(l,c);
+  if(movs.length){selecionada={l,c};movimentosSelecionados=movs;desenharTabuleiro();}
+ }
+}
+
+function dentro(l,c){return l>=0&&l<TAM&&c>=0&&c<TAM;}
+
+function obterMovimentos(l,c){
+ const p=tabuleiro[l][c];
+ if(!p||p.cor!==jogadorAtual)return [];
+ const capturas=obterTodasCapturas(jogadorAtual);
+ const desta=capturas.filter(m=>m.de.l===l&&m.de.c===c);
+ if(capturas.length)return desta.map(m=>({l:m.para.l,c:m.para.c,captura:true,pecaCapturada:m.capturada}));
+ return obterMovimentosSemRegra(l,c);
+}
+
+function obterMovimentosSemRegra(l,c){
+ const p=tabuleiro[l][c];if(!p)return [];
+ if(p.dama)return obterMovimentosDama(l,c);
+ const res=[],direcao=p.cor==="branco"?-1:1;
+ for(const dc of [-1,1]){
+  const nl=l+direcao,nc=c+dc;
+  if(dentro(nl,nc)&&!tabuleiro[nl][nc])res.push({l:nl,c:nc,captura:false});
+ }
+ return res;
+}
+
+function obterMovimentosDama(l,c){
+ const p=tabuleiro[l][c];if(!p)return [];
+ const res=[];
+ for(const [dc,dl] of [[-1,-1],[1,-1],[-1,1],[1,1]]){
+  let nl=l+dl,nc=c+dc,encontrou=false,capturada=null;
+  while(dentro(nl,nc)){
+   const alvo=tabuleiro[nl][nc];
+   if(!alvo){
+    res.push({l:nl,c:nc,captura:encontrou,pecaCapturada:capturada});
+   }else{
+    if(alvo.cor===p.cor||encontrou)break;
+    encontrou=true;capturada={l:nl,c:nc};
+   }
+   nl+=dl;nc+=dc;
+  }
+ }
+ return res;
+}
+
+function obterCapturasPeca(l,c){
+ const p=tabuleiro[l][c],res=[];
+ for(const [dc,dl] of [[-1,-1],[1,-1],[-1,1],[1,1]]){
+  const ml=l+dl,mc=c+dc,fl=l+2*dl,fc=c+2*dc;
+  if(dentro(ml,mc)&&dentro(fl,fc)&&tabuleiro[ml][mc]&&
+     tabuleiro[ml][mc].cor!==p.cor&&!tabuleiro[fl][fc]){
+   res.push({l:fl,c:fc,captura:true,pecaCapturada:{l:ml,c:mc}});
+  }
+ }
+ return res;
+}
+
+function obterTodasCapturas(cor){
+ const res=[];
+ for(let l=0;l<TAM;l++)for(let c=0;c<TAM;c++){
+  const p=tabuleiro[l][c];if(!p||p.cor!==cor)continue;
+  const movs=p.dama?obterMovimentosDama(l,c):obterCapturasPeca(l,c);
+  movs.filter(m=>m.captura).forEach(m=>res.push({
+   de:{l,c},para:{l:m.l,c:m.c},capturada:m.pecaCapturada
+  }));
+ }
+ return res;
+}
+
+function executarMovimento(dl,dc,pl,pc,mov){
+ const p=tabuleiro[dl][dc];if(!p)return;
+ if(mov.captura){
+  capturaPendente={de:{l:dl,c:dc},para:{l:pl,c:pc},mov};
+  abrirDesafio();return;
+ }
+ tabuleiro[pl][pc]=p;tabuleiro[dl][dc]=null;
+ verificarPromocao(pl,pc);
+ selecionada=null;movimentosSelecionados=[];
+ trocarTurno();
+}
+
+function executarCapturaPendente(){
+ if(!capturaPendente)return;
+ const {de,para,mov}=capturaPendente,p=tabuleiro[de.l][de.c];
+ if(!p){cancelarCaptura();return;}
+ tabuleiro[para.l][para.c]=p;
+ tabuleiro[de.l][de.c]=null;
+ if(mov.pecaCapturada)tabuleiro[mov.pecaCapturada.l][mov.pecaCapturada.c]=null;
+ verificarPromocao(para.l,para.c);
+ capturaPendente=null;selecionada=null;movimentosSelecionados=[];
+ desenharTabuleiro();
+ if(verificarVitoria())return;
+ const novas=obterCapturasDaPeca(para.l,para.c);
+ if(novas.length){
+  selecionada={l:para.l,c:para.c};movimentosSelecionados=novas;
+  desenharTabuleiro();return;
+ }
+ trocarTurno();
+}
+
+function obterCapturasDaPeca(l,c){
+ const p=tabuleiro[l][c];if(!p||p.cor!==jogadorAtual)return [];
+ return p.dama?obterMovimentosDama(l,c).filter(m=>m.captura):obterCapturasPeca(l,c);
+}
+
+function cancelarCaptura(){
+ capturaPendente=null;selecionada=null;movimentosSelecionados=[];
+ fecharDesafio();desenharTabuleiro();trocarTurno();
+}
+
+function verificarPromocao(l,c){
+ const p=tabuleiro[l][c];if(!p||p.dama)return;
+ if((p.cor==="branco"&&l===0)||(p.cor==="preto"&&l===TAM-1))p.dama=true;
+}
+
+function trocarTurno(){
+ selecionada=null;movimentosSelecionados=[];
+ jogadorAtual=jogadorAtual==="branco"?"preto":"branco";
+ atualizarTurno();desenharTabuleiro();verificarVitoria();
+}
+
+function atualizarTurno(){
+ document.getElementById("painelBranco").classList.toggle("ativo",jogadorAtual==="branco");
+ document.getElementById("painelPreto").classList.toggle("ativo",jogadorAtual==="preto");
+ document.getElementById("statusBranco").textContent=jogadorAtual==="branco"?"Sua vez!":"Aguardando...";
+ document.getElementById("statusPreto").textContent=jogadorAtual==="preto"?"Sua vez!":"Aguardando...";
+}
+
+/* BANCO DE QUESTÕES */
+function q(tipo,tema,tempo,pergunta,formula,opcoes,resposta){
+ return {tipo,tema,tempo,pergunta,formula,opcoes,resposta};
+}
+function gerarDesafio(){
+ const banco=[];
+ const angular=[
+ ["Qual é o coeficiente angular de f(x)=2x+5?","",["2","5","-2","-5"],"2"],
+ ["Qual é o coeficiente angular de f(x)=-3x+4?","",["3","4","-3","-4"],"-3"],
+ ["Qual é o coeficiente angular de f(x)=7x-2?","",["-2","2","7","-7"],"7"],
+ ["Qual é o coeficiente angular de f(x)=-5x+8?","",["5","8","-5","-8"],"-5"],
+ ["Qual é o coeficiente angular de f(x)=0,5x+3?","",["3","0,5","-0,5","5"],"0,5"]
+ ];
+ angular.forEach(a=>banco.push(q("angular",TEMAS.angular,5,a[0],a[1],a[2],a[3])));
+
+ const linear=[
+ ["Qual é o coeficiente linear de f(x)=2x+5?","",["2","5","-2","-5"],"5"],
+ ["Qual é o coeficiente linear de f(x)=-3x+4?","",["-3","4","3","-4"],"4"],
+ ["Qual é o coeficiente linear de f(x)=7x-2?","",["7","2","-2","-7"],"-2"],
+ ["Qual é o coeficiente linear de f(x)=-5x+8?","",["-5","8","5","-8"],"8"],
+ ["Qual é o coeficiente linear de f(x)=0,5x+3?","",["0,5","-0,5","3","-3"],"3"]
+ ];
+ linear.forEach(a=>banco.push(q("linear",TEMAS.linear,5,a[0],a[1],a[2],a[3])));
+
+ const exponencial=[
+ ["Resolva a equação:","2ˣ = 16",["3","4","5","8"],"4"],
+ ["Resolva a equação:","2ˣ = 32",["4","5","6","8"],"5"],
+ ["Resolva a equação:","3ˣ = 27",["2","3","4","9"],"3"],
+ ["Resolva a equação:","5ˣ = 125",["2","3","4","5"],"3"],
+ ["Resolva a equação:","2ˣ⁺¹ = 16",["2","3","4","5"],"3"],
+ ["Resolva a equação:","2ˣ⁺² = 32",["2","3","4","5"],"3"],
+ ["Resolva a equação:","3ˣ⁻¹ = 9",["2","3","4","5"],"3"],
+ ["Resolva a equação:","4ˣ = 64",["2","3","4","6"],"3"],
+ ["Resolva a equação:","4ˣ⁻¹ = 16",["2","3","4","5"],"3"],
+ ["Resolva a equação:","(1/2)ˣ = 8",["-4","-3","3","4"],"-3"],
+ ["Resolva a equação:","2²ˣ = 64",["2","3","4","6"],"3"],
+ ["Resolva a equação:","5ˣ⁻¹ = 25",["2","3","4","5"],"3"]
+ ];
+ exponencial.forEach(a=>banco.push(q("exponencial",TEMAS.exponencial,40,a[0],a[1],a[2],a[3])));
+
+ const media=[
+ ["Qual é a média aritmética dos números 4, 6 e 8?","4 + 6 + 8 ÷ 3",["5","6","7","8"],"6"],
+ ["Qual é a média aritmética de 5, 7 e 9?","5, 7 e 9",["6","7","8","9"],"7"],
+ ["Qual é a média de 10, 12 e 14?","10, 12 e 14",["11","12","13","14"],"12"],
+ ["Qual é a média de 2, 4, 6 e 8?","2, 4, 6 e 8",["4","5","6","7"],"5"],
+ ["Qual é a média de 6, 8, 10 e 12?","6, 8, 10 e 12",["8","9","10","11"],"9"],
+ ["A soma de 5 números é 40. Qual é a média?","Soma = 40; quantidade = 5",["6","7","8","9"],"8"],
+ ["As notas são 6, 7 e 8. Qual é a média?","6, 7 e 8",["6","7","8","9"],"7"],
+ ["Qual é a média de 3, 3, 6 e 8?","3, 3, 6 e 8",["4","5","6","7"],"5"]
+ ];
+ media.forEach(a=>banco.push(q("media",TEMAS.media,15,a[0],a[1],a[2],a[3])));
+
+ const mediana=[
+ ["Qual é a mediana de 2, 4 e 8?","2, 4, 8",["2","4","6","8"],"4"],
+ ["Qual é a mediana de 3, 7 e 9?","3, 7, 9",["3","7","8","9"],"7"],
+ ["Qual é a mediana de 2, 4, 6 e 8?","2, 4, 6, 8",["4","5","6","7"],"5"],
+ ["Qual é a mediana de 1, 3, 5, 7 e 9?","1, 3, 5, 7, 9",["3","4","5","7"],"5"],
+ ["Qual é a mediana de 4, 6, 8, 10 e 12?","4, 6, 8, 10, 12",["6","8","9","10"],"8"],
+ ["Qual é a mediana de 2, 3, 5 e 9?","2, 3, 5, 9",["3","4","5","6"],"4"],
+ ["Qual é a mediana de 1, 4, 6, 8 e 11?","1, 4, 6, 8, 11",["4","6","7","8"],"6"],
+ ["Qual é a mediana de 3, 5, 7 e 9?","3, 5, 7, 9",["5","6","7","8"],"6"]
+ ];
+ mediana.forEach(a=>banco.push(q("mediana",TEMAS.mediana,15,a[0],a[1],a[2],a[3])));
+
+ return banco[Math.floor(Math.random()*banco.length)];
+}
+
+function abrirDesafio(){
+ respondendo=false;
+ perguntaAtual=gerarDesafio();
+ document.getElementById("temaQuestao").textContent=perguntaAtual.tema;
+ document.getElementById("pergunta").textContent=perguntaAtual.pergunta;
+ document.getElementById("formula").textContent=perguntaAtual.formula;
+ document.getElementById("mensagem").textContent="";
+ const box=document.getElementById("opcoes");box.innerHTML="";
+ perguntaAtual.opcoes.forEach(op=>{
+  const b=document.createElement("button");
+  b.className="opcao";b.textContent=op;
+  b.onclick=()=>responder(op);box.appendChild(b);
+ });
+ document.getElementById("modalDesafio").classList.remove("oculto");
+ iniciarCronometro(perguntaAtual.tempo);
+}
+
+function iniciarCronometro(segundos){
+ clearInterval(intervalo);tempoRestante=segundos;
+ document.getElementById("cronometro").textContent=tempoRestante+"s";
+ intervalo=setInterval(()=>{
+  tempoRestante--;
+  document.getElementById("cronometro").textContent=tempoRestante+"s";
+  if(tempoRestante<=0){clearInterval(intervalo);tempoEsgotado();}
+ },1000);
+}
+
+function registrarResposta(acertou){
+ const e=estatisticas[jogadorAtual];
+ e.total++;
+ if(acertou){e.corretas++;e.temas[perguntaAtual.tipo].corretas++;}
+ else{e.erradas++;e.temas[perguntaAtual.tipo].erradas++;}
+}
+
+function responder(resposta){
+ if(respondendo||!perguntaAtual||!capturaPendente)return;
+ respondendo=true;clearInterval(intervalo);
+ const correta=resposta===perguntaAtual.resposta;
+ registrarResposta(correta);
+ const botoes=document.querySelectorAll(".opcao");
+ botoes.forEach(b=>b.disabled=true);
+ if(correta){
+  document.getElementById("mensagem").textContent="✅ Resposta correta! Captura realizada.";
+  setTimeout(()=>{fecharDesafio();executarCapturaPendente();},450);
+ }else{
+  document.getElementById("mensagem").textContent="❌ Resposta incorreta. A captura foi cancelada.";
+  setTimeout(cancelarCaptura,600);
+ }
+}
+
+function tempoEsgotado(){
+ if(respondendo||!perguntaAtual||!capturaPendente)return;
+ respondendo=true;registrarResposta(false);
+ document.getElementById("mensagem").textContent="⏰ Tempo esgotado! A captura foi cancelada.";
+ setTimeout(cancelarCaptura,600);
+}
+
+function fecharDesafio(){
+ clearInterval(intervalo);
+ document.getElementById("modalDesafio").classList.add("oculto");
+ perguntaAtual=null;respondendo=false;
+}
+
+function obterTodosMovimentos(cor){
+ let resultado=[];
+ for(let l=0;l<TAM;l++)for(let c=0;c<TAM;c++){
+  const p=tabuleiro[l][c];if(!p||p.cor!==cor)continue;
+  const movs=p.dama?obterMovimentosDama(l,c):obterMovimentosSemRegra(l,c);
+  movs.forEach(m=>resultado.push({captura:!!m.captura}));
+ }
+ const capturas=resultado.filter(m=>m.captura);
+ return capturas.length?capturas:resultado;
+}
+
+function verificarVitoria(){
+ if(obterTodosMovimentos(jogadorAtual).length)return false;
+ finalizarJogo(jogadorAtual==="branco"?"preto":"branco");return true;
+}
+
+function finalizarJogo(vencedor){
+ jogoAtivo=false;selecionada=null;movimentosSelecionados=[];capturaPendente=null;
+ fecharDesafio();
+ document.getElementById("jogo").classList.add("oculto");
+ document.getElementById("resultado").classList.remove("oculto");
+ document.getElementById("vencedor").textContent="🏆 Vencedor: "+nomes[vencedor];
+ gerarRelatorio();
+}
+
+function gerarResumoJogador(cor){
+ const e=estatisticas[cor],pct=e.total?Math.round(e.corretas/e.total*100):0;
+ return `<div class="resumo"><h3>${cor==="branco"?"⚪":"⚫"} ${nomes[cor]}</h3>
+ <div class="metricas">
+ <div class="metrica"><strong>${e.total}</strong>Perguntas</div>
+ <div class="metrica"><strong>${e.corretas}</strong>Acertos</div>
+ <div class="metrica"><strong>${e.erradas}</strong>Erros</div>
+ <div class="metrica"><strong>${pct}%</strong>Aproveitamento</div>
+ </div></div>`;
+}
+
+function gerarRelatorio(){
+ document.getElementById("resumos").innerHTML=gerarResumoJogador("branco")+gerarResumoJogador("preto");
+ gerarTabela();desenharGraficos();
+}
+
+function gerarTabela(){
+ let html=`<tr><th>Tema</th><th>${nomes.branco} — Acertos</th><th>${nomes.branco} — Erros</th><th>${nomes.branco} — %</th><th>${nomes.preto} — Acertos</th><th>${nomes.preto} — Erros</th><th>${nomes.preto} — %</th></tr>`;
+ Object.keys(TEMAS).forEach(chave=>{
+  const a=estatisticas.branco.temas[chave],b=estatisticas.preto.temas[chave];
+  const ta=a.corretas+a.erradas,tb=b.corretas+b.erradas;
+  html+=`<tr><td><strong>${TEMAS[chave]}</strong></td>
+  <td>${a.corretas}</td><td>${a.erradas}</td><td>${ta?Math.round(a.corretas/ta*100):0}%</td>
+  <td>${b.corretas}</td><td>${b.erradas}</td><td>${tb?Math.round(b.corretas/tb*100):0}%</td></tr>`;
+ });
+ document.getElementById("tabelaResultado").innerHTML=html;
+}
+
+function desenharGraficos(){
+ const container=document.getElementById("graficos");container.innerHTML="";
+ ["branco","preto"].forEach(cor=>{
+  const e=estatisticas[cor];
+  let html=`<div class="grafico"><h3>${cor==="branco"?"⚪":"⚫"} ${nomes[cor]}</h3>`;
+  [["Acertos",e.corretas,"correcta"],["Erros",e.erradas,"errada"]].forEach(([nome,valor,classe])=>{
+   const pct=e.total?valor/e.total*100:0;
+   html+=`<div class="barra-linha"><div class="barra-label"><span>${nome}</span><span>${valor}</span></div><div class="barra-bg"><div class="barra ${classe}" style="width:${pct}%"></div></div></div>`;
+  });
+  html+="</div>";container.innerHTML+=html;
+ });
+}
+
+function voltarInicio(){
+ jogoAtivo=false;clearInterval(intervalo);fecharDesafio();
+ document.getElementById("jogo").classList.add("oculto");
+ document.getElementById("resultado").classList.add("oculto");
+ document.getElementById("inicio").classList.remove("oculto");
+ tabuleiro=[];selecionada=null;movimentosSelecionados=[];capturaPendente=null;
+}
+</script>
+</body>
+</html>
